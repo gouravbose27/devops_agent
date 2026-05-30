@@ -1,0 +1,69 @@
+# config/tasks.yaml
+log_analysis_task:
+  description: >
+    Analyze the provided DevOps pipeline logs: {pipeline_logs}.
+    Carefully scan through every log entry and identify:
+    - Pipeline failures and errors (with timestamps and affected stages)
+    - Security threats such as unauthorized access attempts, exposed secrets,
+      or suspicious activity
+    - Critical warnings that could lead to future failures
+    - Misconfiguration issues across build, test, or deployment stages
+    Categorize each finding by severity: CRITICAL, HIGH, MEDIUM, or LOW.
+  expected_output: >
+    A structured report containing:
+    1. Executive summary of overall pipeline health
+    2. A categorized list of all identified issues, each with:
+       - Severity level (CRITICAL / HIGH / MEDIUM / LOW)
+       - Timestamp and affected pipeline stage
+       - Description of the issue
+       - Raw log snippet as evidence
+    3. A prioritized list of issues requiring immediate attention
+  agent: pipeline_log_analyzer
+
+issue_investigation_task:
+  description: >
+    Using the log analysis report as input, research each identified issue
+    on the web. For every CRITICAL and HIGH severity issue, search for:
+    - Known root causes and documented explanations
+    - Community-verified fixes (GitHub issues, Stack Overflow, vendor docs)
+    - Relevant CVEs or security advisories if the issue is security-related
+    - Workarounds if a permanent fix is not yet available
+    Focus on MEDIUM and LOW severity issues only after all CRITICAL/HIGH
+    issues have been researched.
+  expected_output: >
+    A research findings document containing, for each issue:
+    1. Issue reference (matched to the log analysis report)
+    2. Root cause explanation sourced from documentation or community
+    3. One or more verified resolution approaches with source URLs
+    4. Any relevant CVE IDs or security advisories
+    5. Estimated complexity of the fix: Simple / Moderate / Complex
+  agent: issue_investigator
+  context:
+    - log_analysis_task
+
+
+solution_synthesis_task:
+  description: >
+    Using both the log analysis report and the research findings, synthesize
+    a comprehensive, actionable remediation plan. The plan must:
+    - Address all CRITICAL and HIGH severity issues first
+    - Provide clear step-by-step resolution instructions for each issue
+    - Recommend DevOps and security best practices to prevent recurrence
+    - Suggest pipeline configuration improvements where applicable
+    - Be written in a way that a mid-level DevOps engineer can execute immediately
+  expected_output: >
+    A final remediation report structured as follows:
+    1. Executive Summary — overall pipeline status and top risks
+    2. Remediation Plan — for each issue (ordered by severity):
+       - Issue description
+       - Step-by-step fix instructions
+       - Verification steps to confirm the fix worked
+    3. Best Practices & Recommendations — preventive measures and
+       pipeline hardening suggestions
+    4. Quick Reference Checklist — a concise checklist for the team
+  agent: solution_synthesizer
+  context:
+    - log_analysis_task
+    - issue_investigation_task
+  output_file: outputs/final_remediation_report.md
+  markdown: true
